@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctors</title>
+    <style>
+        a { text-decoration: none; }
+        table {
+            border-collapse: collapse; /* Отображать двойные линии как одинарные */
+        }
+        th {
+            background: #ccc; /* Цвет фона */
+            text-align: left; /* Выравнивание по левому краю */
+        }
+        td, th {
+            border: 1px solid #800; /* Параметры границы */
+            padding: 4px; /* Поля в ячейках */
+        }
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <th>Department</th>
+        <th>Doctor</th>
+    </tr>
+<div id="doctor" th:each="doctor : ${doctors}">
+    <tr>
+        <td><p th:text="${doctor.getDepartment()}">value</p></td>
+        <td><a th:href="@{/doctors/{id}(id=${doctor.getId()})}"
+               th:text="${doctor.getFull_name()}">doctor</a></td>
+    </tr>
+</div>
+</table>
+
+<br/>
+<hr/>
+
+<a href="/doctors/new">Create new doctor</a>
+</body>
+</html>

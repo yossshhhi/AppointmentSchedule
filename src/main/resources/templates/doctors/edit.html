@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit doctor</title>
+</head>
+<body>
+<form th:method="PATCH" th:action="@{/doctors/{id}(id=${doctor.getId()})}" th:object="${doctor}">
+    <table>
+        <tr>
+            <td><label for="full_name">Enter doctor's full name:</label></td>
+            <td><input type="text" th:field="*{full_name}" id="full_name" size="30"/>
+                <div style="color: red" th:if="${#fields.hasErrors('full_name')}" th:errors="*{full_name}">Name error</div></td>
+        </tr>
+
+        <tr>
+            <td><label for="qualification">Enter qualification:</label></td>
+            <td><input type="text" th:field="*{qualification}" id="qualification" size="30"/>
+                <div style="color: red" th:if="${#fields.hasErrors('qualification')}" th:errors="*{qualification}">Qualification error</div></td>
+        </tr>
+
+        <tr>
+            <td><label for="specialty">Enter specialty:</label></td>
+            <td><input type="text" th:field="*{specialty}" id="specialty" size="30"/>
+                <div style="color: red" th:if="${#fields.hasErrors('specialty')}" th:errors="*{specialty}">Specialty error</div></td>
+        </tr>
+
+        <tr>
+            <td> <label for="department">Enter department:</label></td>
+            <td><input type="text" th:field="*{department}" id="department" size="30"/>
+                <div style="color: red" th:if="${#fields.hasErrors('department')}" th:errors="*{department}">Department error</div></td>
+        </tr>
+
+        <tr>
+            <td><label for="telephone">Enter telephone:</label></td>
+            <td><input type="text" th:field="*{telephone}" id="telephone" placeholder="example: +7(800)800-80-80" size="30"/>
+                <div style="color: red" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}">Telephone error</div></td>
+        </tr>
+    </table>
+
+    <input type="submit" value="Update!"/>
+</form>
+</body>
+</html>
