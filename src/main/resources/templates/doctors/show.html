@@ -156,6 +156,8 @@
 
 <hr>
 
+<input type="hidden" id="id" th:value="${doctor.getId()}">
+
 <a th:href="@{/doctors/{id}/edit(id=${doctor.getId()})}">
   <input type="submit" value="Edit"/>
 </a>
@@ -186,7 +188,10 @@
 <script>
     async function getData() {
         try {
-            const response = await fetch('/doctors/show', {
+            // const urlParts = window.location.pathname.split('/');
+            const id = document.getElementById('id').value;
+            console.log(id);
+            const response = await fetch('/api/doctors/' + id, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -196,51 +201,45 @@
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            return data;
+            console.log(data);
+            initDatepicker(data.disabledDates);
+            return data; // Add this line to return the data
         } catch (error) {
-            console.error('Error:', error);
-            return null;
+            console.error('Error:', error.message);
+            return null; // Return null in case of an error
         }
     }
 
-    $(document).ready(function() {
-        getData().then(data => {
-            const disabledDates = data.disabledDates;
-            console.log(disabledDates);
-
-            $('.datepicker').datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true,
-                startDate: '0d',
-                weekStart: 1
-            });
-            $('.datepicker').datepicker('setDatesDisabled', disabledDates);
-            $('.cell').click(function () {
-                $('.cell').removeClass('select');
-                $(this).addClass('select');
-            });
-
-            $('.datepicker').on('changeDate', function(e) {
-                const selectedDate = formatDate(e.date);
-
-                getData()
-                    .then(data => {
-                        const datesWithTimeSlots = convertToMap(data.datesWithTimeSlots);
-                        const timeSlots = datesWithTimeSlots.get(selectedDate) || [];
-                        console.log(datesWithTimeSlots);
-                        console.log(selectedDate);
-                        fillTimes(timeSlots);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            });
-
-        })
-        .catch(error => {
-            console.error('Error:', error);
+    function initDatepicker(disabledDates) {
+        console.log(disabledDates);
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            startDate: '0d',
+            weekStart: 1,
         });
-    });
+        $('.datepicker').datepicker('setDatesDisabled', disabledDates);
+        $('.cell').click(function () {
+            $('.cell').removeClass('select');
+            $(this).addClass('select');
+        });
+
+        $('.datepicker').on('changeDate', function (e) {
+            const selectedDate = formatDate(e.date);
+
+            getData()
+                .then((data) => {
+                    const datesWithTimeSlots = convertToMap(data.datesWithTimeSlots);
+                    const timeSlots = datesWithTimeSlots.get(selectedDate) || [];
+                    console.log(datesWithTimeSlots);
+                    console.log(selectedDate);
+                    fillTimes(timeSlots);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+    }
 
     function formatDate(date) {
         const day = date.getDate();
@@ -279,6 +278,10 @@
         }
         timeSlotsContainer.insertAdjacentHTML("beforeend", html);
     }
+
+    getData().catch((error) => {
+        console.error('Error:', error);
+    });
 </script>
 
 </body>

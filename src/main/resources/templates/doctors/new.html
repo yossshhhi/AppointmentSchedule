@@ -38,6 +38,18 @@
       <td><input type="text" th:field="*{telephone}" id="telephone" placeholder="example: +7(800)800-80-80" size="30"/>
       <div style="color: red" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}">Telephone error</div></td>
     </tr>
+
+    <tr>
+      <td><label for="start">Enter start time:</label></td>
+      <td><input type="text" th:field="*{start}" id="start" placeholder="12:00" size="30"/>
+        <div style="color: red" th:if="${#fields.hasErrors('start')}" th:errors="*{start}">Start error</div></td>
+    </tr>
+
+    <tr>
+      <td><label for="end">Enter end time:</label></td>
+      <td><input type="text" th:field="*{end}" id="end" placeholder="17:00" size="30"/>
+        <div style="color: red" th:if="${#fields.hasErrors('end')}" th:errors="*{end}">End error</div></td>
+    </tr>
   </table>
 
   <input type="submit" value="Create!"/>

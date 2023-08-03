@@ -1,6 +1,6 @@
 package com.example.appointment_schedule.services;
 
-import com.example.appointment_schedule.entity.Doctor;
+import com.example.appointment_schedule.entity.DoctorEntity;
 import com.example.appointment_schedule.repositories.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,22 +19,22 @@ public class DoctorService {
         this.doctorRepository = doctorRepository;
     }
 
-    public List<Doctor> findAll() {
+    public List<DoctorEntity> findAll() {
         return doctorRepository.findAll();
     }
 
-    public Doctor findOne(long id) {
-        Optional<Doctor> doctor = doctorRepository.findById(id);
+    public DoctorEntity findOne(long id) {
+        Optional<DoctorEntity> doctor = doctorRepository.findById(id);
         return doctor.orElse(null);
     }
 
     @Transactional
-    public void save(Doctor doctor) {
+    public void save(DoctorEntity doctor) {
         doctorRepository.save(doctor);
     }
 
     @Transactional
-    public void update(long id, Doctor doctor) {
+    public void update(long id, DoctorEntity doctor) {
         doctor.setId(id);
         doctorRepository.save(doctor);
     }

@@ -1,17 +1,20 @@
 package com.example.appointment_schedule.entity;
 
+//import com.example.appointment_schedule.util.StartTimeBeforeEndTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "doctor")
-public class Doctor {
+//@StartTimeBeforeEndTime(start = "start", end = "end")
+public class DoctorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -37,5 +40,12 @@ public class Doctor {
     private String telephone;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
-    private List<Day> days;
+    private List<DayEntity> days;
+
+    @Transient
+    @Pattern(regexp = "^(1[0-9]):[0-5][0-9]$", message = "It's non-working time")
+    private String start;
+    @Transient
+    @Pattern(regexp = "^(1[0-9]):[0-5][0-9]$", message = "It's non-working time")
+    private String end;
 }

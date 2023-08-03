@@ -11,7 +11,8 @@ import java.util.Set;
 
 @Data
 @Entity
-public class Day {
+@Table(name = "day")
+public class DayEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,17 +23,22 @@ public class Day {
 
     @ManyToOne
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
-    private Doctor doctor;
+    private DoctorEntity doctor;
 
-    @OneToMany(mappedBy = "day", cascade = CascadeType.ALL)
-    private List<Time> time;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "day_time",
+            joinColumns = {@JoinColumn(name = "day_id")},
+            inverseJoinColumns = {@JoinColumn(name = "time_id")}
+    )
+    private List<TimeEntity> time;
 
-    public Day(Date date, Doctor doctor) {
+    public DayEntity(Date date, DoctorEntity doctor) {
         this.date = date;
         this.doctor = doctor;
     }
 
-    public Day() {
+    public DayEntity() {
 
     }
 }

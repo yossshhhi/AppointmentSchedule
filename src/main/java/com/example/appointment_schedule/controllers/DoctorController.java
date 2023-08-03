@@ -1,6 +1,7 @@
 package com.example.appointment_schedule.controllers;
 
-import com.example.appointment_schedule.entity.Doctor;
+import com.example.appointment_schedule.entity.DayEntity;
+import com.example.appointment_schedule.entity.DoctorEntity;
 import com.example.appointment_schedule.services.DayService;
 import com.example.appointment_schedule.services.DoctorService;
 import jakarta.validation.Valid;
@@ -26,18 +27,15 @@ public class DoctorController {
 
     @GetMapping()
     public String index(Model model) {
-        List<Doctor> doctors = doctorService.findAll();
+        List<DoctorEntity> doctors = doctorService.findAll();
         model.addAttribute("doctors", doctors);
         return "doctors/index";
     }
 
     @GetMapping("/{id}")
     public String show(@PathVariable("id") long id, Model model) {
-        if (dayService.findAllDays().size() < 15) {
+        if (dayService.findAllDays(id).size() < 15) {
             dayService.insertDates(id);
-        }
-        if (dayService.findWordDays().size() < 15) {
-
         }
         model.addAttribute("doctor", doctorService.findOne(id));
 
@@ -45,16 +43,23 @@ public class DoctorController {
     }
 
     @GetMapping("/new")
-    public String newPerson(@ModelAttribute("doctor") Doctor doctor) {
+    public String newPerson(@ModelAttribute("doctor") DoctorEntity doctor) {
         return "doctors/new";
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("doctor") @Valid Doctor doctor, BindingResult bindingResult) {
+    public String create(@ModelAttribute("doctor") @Valid DoctorEntity doctor, BindingResult bindingResult) {
         if (bindingResult.hasErrors())
             return "doctors/new";
-
         doctorService.save(doctor);
+        if (dayService.findAllDays(doctor.getId()).size() < 15) {
+            dayService.insertDates(doctor.getId());
+        }
+        List<DayEntity> workDays = dayService.findWordDays(doctor.getId());
+        List<DayEntity> daysWithoutHolidays = dayService.filterHolidays(workDays);
+        for (DayEntity day : daysWithoutHolidays) {
+            dayService.setWorkTime(doctor.getStart(), doctor.getEnd(), day);
+        }
         return "redirect:/doctors";
     }
 
@@ -65,10 +70,16 @@ public class DoctorController {
     }
 
     @PatchMapping("/{id}")
-    public String update(@ModelAttribute("doctor") @Valid Doctor doctor,
+    public String update(@ModelAttribute("doctor") @Valid DoctorEntity doctor,
                          BindingResult bindingResult, @PathVariable("id") long id) {
         if (bindingResult.hasErrors())
             return "doctors/edit";
+        List<DayEntity> workDays = doctorService.findOne(id).getDays();
+        List<DayEntity> daysWithoutHolidays = dayService.filterHolidays(workDays);
+        for (DayEntity day : daysWithoutHolidays) {
+            dayService.setWorkTime(doctor.getStart(), doctor.getEnd(), day);
+            dayService.update(day.getId(), day);
+        }
         doctorService.update(id, doctor);
         return "redirect:/doctors";
     }
