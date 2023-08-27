@@ -1,16 +1,15 @@
 package com.example.appointment_schedule.services;
 
+import com.example.appointment_schedule.entity.AppointmentEntity;
 import com.example.appointment_schedule.entity.DayEntity;
 import com.example.appointment_schedule.entity.TimeEntity;
 import com.example.appointment_schedule.repositories.DayRepository;
 import com.example.appointment_schedule.repositories.DoctorRepository;
 import com.example.appointment_schedule.repositories.TimeRepository;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -18,15 +17,13 @@ import java.util.*;
 public class DayService {
     private final DayRepository dayRepository;
     private final DoctorRepository doctorRepository;
-    private final TimeRepository timeRepository;
-    private final TimeService timeService;
+    private final AppointmentService appointmentService;
 
     @Autowired
-    public DayService(DayRepository dayRepository, DoctorRepository doctorRepository, TimeRepository timeRepository, TimeService timeService) {
+    public DayService(DayRepository dayRepository, DoctorRepository doctorRepository, AppointmentService appointment) {
         this.dayRepository = dayRepository;
         this.doctorRepository = doctorRepository;
-        this.timeRepository = timeRepository;
-        this.timeService = timeService;
+        this.appointmentService = appointment;
     }
 
     public List<DayEntity> findAllDays(long doctor_id) {
@@ -34,36 +31,32 @@ public class DayService {
     }
 
     public List<DayEntity> findOffDays(long doctor_id) {
-        List<DayEntity> allDays = findAllDays(doctor_id);
-        List<DayEntity> offDays = new ArrayList<>();
-        for (int i = 0; i < allDays.size(); i++) {
-            Date date = new Date();
-            if(allDays.get(i).getDate().before(new Date(date.getTime() - (1000 * 60 * 60 * 24)))) {
-                dayRepository.delete(allDays.get(i));
-            }
-            if(allDays.get(i).getTime().isEmpty()) {
-                offDays.add(allDays.get(i));
-            }
-        }
+        List<DayEntity> offDays = dayRepository.findDayEntitiesByDoctorIdAndWorkDay(doctor_id, false);
+        deletePastDays(offDays);
         return offDays;
     }
 
     public List<DayEntity> findWordDays(long doctor_id) {
-        List<DayEntity> allDays = findAllDays(doctor_id);
-        List<DayEntity> workDays = new ArrayList<>();
-        for (int i = 0; i < allDays.size(); i++) {
-            if(!allDays.get(i).getTime().isEmpty())
-                workDays.add(allDays.get(i));
-        }
+        List<DayEntity> workDays = dayRepository.findDayEntitiesByDoctorIdAndWorkDay(doctor_id, true);
+        deletePastDays(workDays);
         return workDays;
     }
 
+    public void deletePastDays(List<DayEntity> days) {
+        for (int i = 0; i < days.size(); i++) {
+            Date date = new Date();
+            if(days.get(i).getDate().before(new Date(date.getTime() - (1000 * 60 * 60 * 24)))) {
+                dayRepository.delete(days.get(i));
+            }
+        }
+    }
+
     public Map<String, List<String>> mapDatesWithTime(long doctor_id) {
-        List<DayEntity> workDays = findWordDays(doctor_id);
+        List<DayEntity> workDays = appointmentService.findDays(doctor_id);
         Map<String, List<String>> datesWithTime = new HashMap<>();
         for (int i = 0; i < workDays.size(); i++) {
             DayEntity day = workDays.get(i);
-            List<TimeEntity> times = day.getTime();
+            List<TimeEntity> times = appointmentService.findTimes(day.getId());
             List<String> stringTime = new ArrayList<>();
             for (int j = 0; j < times.size(); j++) {
                 stringTime.add(times.get(j).getAppointment().format(DateTimeFormatter.ofPattern("hh:mm a")));
@@ -82,17 +75,7 @@ public class DayService {
         return  disabledDates;
     }
 
-    public List<DayEntity> filterHolidays(List<DayEntity> workDays) {
-        List<DayEntity> daysWithoutHolidays = new ArrayList<>();
-        for (DayEntity day : workDays) {
-            if (isItHoliday(day.getDate())) {
-                daysWithoutHolidays.add(day);
-            }
-        }
-        return daysWithoutHolidays;
-    }
-
-    public boolean isItHoliday(Date date) {
+    public boolean isItWorkday(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         return calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY &&
@@ -100,12 +83,10 @@ public class DayService {
     }
 
     @Transactional
-    public void setWorkTime(String start, String end, DayEntity day) {
-        LocalTime startTime = LocalTime.parse(start);
-        LocalTime endTime = LocalTime.parse(end);
-        List<TimeEntity> times = timeRepository.findTimeListByTime(startTime, endTime);
-        day.setTime(times);
-        save(day);
+    public void setWorkTime(List<TimeEntity> times, DayEntity day) {
+        for (TimeEntity time : times) {
+            appointmentService.save(new AppointmentEntity(time, day, day.getDoctor()));
+        }
     }
 
     @Transactional
@@ -118,7 +99,7 @@ public class DayService {
         Date installBeforeThisDate = getFistDayOfMonth(lastDateInDB);
         Date toSave = getNextDay(lastDateInDB);
         while (toSave.before(installBeforeThisDate)) {
-            save(new DayEntity(toSave, doctorRepository.findById(id).get()));
+            save(new DayEntity(toSave, doctorRepository.findById(id).get(), isItWorkday(toSave)));
             toSave = getNextDay(toSave);
         }
     }

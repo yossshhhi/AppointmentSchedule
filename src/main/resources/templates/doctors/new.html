@@ -40,15 +40,15 @@
     </tr>
 
     <tr>
-      <td><label for="start">Enter start time:</label></td>
-      <td><input type="text" th:field="*{start}" id="start" placeholder="12:00" size="30"/>
-        <div style="color: red" th:if="${#fields.hasErrors('start')}" th:errors="*{start}">Start error</div></td>
+      <td><label for="start_time">Enter start time:</label></td>
+      <td><input type="text" th:field="*{start_time}" id="start_time" placeholder="12:00" size="30"/>
+        <div style="color: red" th:if="${#fields.hasErrors('start_time')}" th:errors="*{start_time}">Start time error</div></td>
     </tr>
 
     <tr>
-      <td><label for="end">Enter end time:</label></td>
-      <td><input type="text" th:field="*{end}" id="end" placeholder="17:00" size="30"/>
-        <div style="color: red" th:if="${#fields.hasErrors('end')}" th:errors="*{end}">End error</div></td>
+      <td><label for="end_time">Enter end time:</label></td>
+      <td><input type="text" th:field="*{end_time}" id="end_time" placeholder="17:00" size="30"/>
+        <div style="color: red" th:if="${#fields.hasErrors('end_time')}" th:errors="*{end_time}">End time error</div></td>
     </tr>
   </table>
 

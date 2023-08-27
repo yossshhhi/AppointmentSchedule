@@ -1,39 +1,53 @@
-//package com.example.appointment_schedule.util;
-//
-//import jakarta.validation.ConstraintValidator;
-//import jakarta.validation.ConstraintValidatorContext;
-//import org.springframework.beans.BeanWrapperImpl;
-//
-//import java.time.LocalTime;
-//import java.time.format.DateTimeFormatter;
-//
-//public class StartTimeBeforeEndTimeValidator implements ConstraintValidator<StartTimeBeforeEndTime, Object> {
-//
-//    private String startFieldName;
-//    private String endFieldName;
-//
-//    @Override
-//    public void initialize(StartTimeBeforeEndTime constraintAnnotation) {
-//        this.startFieldName = constraintAnnotation.start();
-//        this.endFieldName = constraintAnnotation.end();
-//    }
-//
-//    @Override
-//    public boolean isValid(Object value, ConstraintValidatorContext context) {
-//        String startTime = (String) new BeanWrapperImpl(value).getPropertyValue(startFieldName);
-//        String endTime = (String) new BeanWrapperImpl(value).getPropertyValue(endFieldName);
-//
-//        // Implement the logic to compare start and end time
-//        return compareTime(startTime, endTime) < 0;
-//    }
-//
+package com.example.appointment_schedule.util;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import org.springframework.beans.BeanWrapperImpl;
+
+import java.text.ParseException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
+public class StartTimeBeforeEndTimeValidator implements ConstraintValidator<StartTimeBeforeEndTime, LocalTime> {
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private LocalTime minTime;
+    private LocalTime maxTime;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_TIME;
+    private StartTimeBeforeEndTime constraintAnnotation;
+    @Override
+    public void initialize(StartTimeBeforeEndTime constraintAnnotation) {
+        this.constraintAnnotation = constraintAnnotation;
+        this.startTime = LocalTime.parse(constraintAnnotation.start(), timeFormatter);
+        this.endTime = LocalTime.parse(constraintAnnotation.end(), timeFormatter);
+    }
+
+    @Override
+    public boolean isValid(LocalTime value, ConstraintValidatorContext context) {
+        try {
+            this.timeFormatter.parse(value.toString());
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+
+        try {
+            this.minTime = LocalTime.parse(constraintAnnotation.min(), timeFormatter);
+            this.maxTime = LocalTime.parse(constraintAnnotation.max(), timeFormatter);
+            if( value == null || (!value.isAfter(minTime) && !value.isBefore(maxTime)))
+                return false;
+        } catch (DateTimeParseException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        return startTime.isBefore(endTime);
+    }
+
 //    private int compareTime(String time1, String time2) {
-//        // Implement your custom logic to compare two time strings here.
-//        // For example, you can convert them to LocalTime objects and use the compareTo method.
-//        // In this case, since the time format is "HH:mm", you can use the following code:
+//
 //        LocalTime startTime = LocalTime.parse(time1, DateTimeFormatter.ofPattern("HH:mm"));
 //        LocalTime endTime = LocalTime.parse(time2, DateTimeFormatter.ofPattern("HH:mm"));
 //        return startTime.compareTo(endTime);
 //    }
-//}
-//
+}
+

@@ -16,4 +16,9 @@ public interface DayRepository extends JpaRepository<DayEntity, Long> {
     @Query("SELECT d FROM DayEntity d WHERE d.doctor.id = ?1")
     List<DayEntity> findDayEntitiesByDoctorId(long doctor_id);
 
+    @Query("SELECT d FROM DayEntity d WHERE d.doctor.id = ?1 AND d.isWorkDay = ?2")
+    List<DayEntity> findDayEntitiesByDoctorIdAndWorkDay(long doctor_id, boolean isWorkday);
+
+    @Query("DELETE FROM DayEntity d WHERE d.doctor.id = ?1")
+    void deleteDayEntitiesByDoctorId(long doctor_id);
 }

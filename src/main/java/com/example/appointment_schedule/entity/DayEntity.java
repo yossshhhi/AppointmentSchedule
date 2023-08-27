@@ -25,17 +25,24 @@ public class DayEntity {
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
     private DoctorEntity doctor;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "day_time",
-            joinColumns = {@JoinColumn(name = "day_id")},
-            inverseJoinColumns = {@JoinColumn(name = "time_id")}
-    )
-    private List<TimeEntity> time;
+    @OneToMany(mappedBy = "day")
+    private List<AppointmentEntity> appointments;
 
-    public DayEntity(Date date, DoctorEntity doctor) {
+    @Column(name = "is_work_day")
+    private boolean isWorkDay;
+
+//    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JoinTable(
+//            name = "day_time",
+//            joinColumns = {@JoinColumn(name = "day_id")},
+//            inverseJoinColumns = {@JoinColumn(name = "time_id")}
+//    )
+//    private List<TimeEntity> time;
+
+    public DayEntity(Date date, DoctorEntity doctor, boolean isWorkDay) {
         this.date = date;
         this.doctor = doctor;
+        this.isWorkDay = isWorkDay;
     }
 
     public DayEntity() {

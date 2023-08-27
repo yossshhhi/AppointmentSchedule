@@ -2,8 +2,11 @@ package com.example.appointment_schedule.controllers;
 
 import com.example.appointment_schedule.entity.DayEntity;
 import com.example.appointment_schedule.entity.DoctorEntity;
+import com.example.appointment_schedule.entity.TimeEntity;
+import com.example.appointment_schedule.services.AppointmentService;
 import com.example.appointment_schedule.services.DayService;
 import com.example.appointment_schedule.services.DoctorService;
+import com.example.appointment_schedule.services.TimeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,11 +21,16 @@ import java.util.List;
 public class DoctorController {
     private final DoctorService doctorService;
     private final DayService dayService;
+    private final TimeService timeService;
+    private final AppointmentService appointmentService;
 
     @Autowired
-    public DoctorController(DoctorService doctorService, DayService dayService) {
+    public DoctorController(DoctorService doctorService, DayService dayService,
+                            TimeService timeService, AppointmentService appointmentService) {
         this.doctorService = doctorService;
         this.dayService = dayService;
+        this.timeService = timeService;
+        this.appointmentService = appointmentService;
     }
 
     @GetMapping()
@@ -52,13 +60,11 @@ public class DoctorController {
         if (bindingResult.hasErrors())
             return "doctors/new";
         doctorService.save(doctor);
-        if (dayService.findAllDays(doctor.getId()).size() < 15) {
-            dayService.insertDates(doctor.getId());
-        }
+        dayService.insertDates(doctor.getId());
         List<DayEntity> workDays = dayService.findWordDays(doctor.getId());
-        List<DayEntity> daysWithoutHolidays = dayService.filterHolidays(workDays);
-        for (DayEntity day : daysWithoutHolidays) {
-            dayService.setWorkTime(doctor.getStart(), doctor.getEnd(), day);
+        List<TimeEntity> times = timeService.findTimeFromStartToEnd(doctor.getStart_time(), doctor.getEnd_time());
+        for (DayEntity day : workDays) {
+            dayService.setWorkTime(times, day);
         }
         return "redirect:/doctors";
     }
@@ -74,13 +80,14 @@ public class DoctorController {
                          BindingResult bindingResult, @PathVariable("id") long id) {
         if (bindingResult.hasErrors())
             return "doctors/edit";
-        List<DayEntity> workDays = doctorService.findOne(id).getDays();
-        List<DayEntity> daysWithoutHolidays = dayService.filterHolidays(workDays);
-        for (DayEntity day : daysWithoutHolidays) {
-            dayService.setWorkTime(doctor.getStart(), doctor.getEnd(), day);
-            dayService.update(day.getId(), day);
-        }
         doctorService.update(id, doctor);
+
+        List<DayEntity> workDays = dayService.findWordDays(id);
+        List<TimeEntity> times = timeService.findTimeFromStartToEnd(doctor.getStart_time(), doctor.getEnd_time());
+        for (DayEntity day : workDays) {
+//            appointmentService.deleteByDay(day.getId());
+            dayService.setWorkTime(times, day);
+        }
         return "redirect:/doctors";
     }
 
@@ -88,5 +95,11 @@ public class DoctorController {
     public String delete(@PathVariable("id") long id) {
         doctorService.delete(id);
         return "redirect:/doctors";
+    }
+
+    public void deleteDays(List<DayEntity> days) {
+        for (int i = 0; i < days.size(); i++) {
+            dayService.delete(days.get(i).getId());
+        }
     }
 }

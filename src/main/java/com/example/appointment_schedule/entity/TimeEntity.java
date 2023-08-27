@@ -19,6 +19,9 @@ public class TimeEntity {
     @Column(name = "appointment")
     private LocalTime appointment;
 
-    @ManyToMany(mappedBy = "time")
-    private Set<DayEntity> days;
+//    @ManyToMany(mappedBy = "time")
+//    private Set<DayEntity> days;
+
+    @OneToMany(mappedBy = "time")
+    private Set<AppointmentEntity> appointments;
 }

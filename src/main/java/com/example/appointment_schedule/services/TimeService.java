@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +19,9 @@ public class TimeService {
         this.timeRepository = timeRepository;
     }
 
-    public List<TimeEntity> findAllDayTimes(long id) {
-        return timeRepository.findTimeEntitiesByDays(id);
+
+    public List<TimeEntity> findTimeFromStartToEnd(LocalTime start, LocalTime end) {
+        return timeRepository.findTimeListByTime(start, end);
     }
 
 
